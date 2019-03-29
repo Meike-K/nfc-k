@@ -1,0 +1,31 @@
+TITLE: FULL INFORMATION APPROACH - CORRELATED ERRORS
+
+DATA: 
+file is NFC_data.txt;
+    
+VARIABLE: 
+names are
+v1 v2 v3 v4r v5 v6r v7r v8r v9r v10r v11r v12r v13 v14 v15r v16r
+TIE DELIB OPEN LEARN SOCDES EDU GENDER;
+usevariables are 
+v1 v2 v3 v4r v5 v6r v7r v8r v9r v10r v11r v12r v13 v14 v15r v16r ;
+missing = all (-77);
+
+MODEL:
+NFC BY v1 v2 v3 v4r v5 v6r v7r v8r v9r v10r v11r v12r v13 v14 v15r v16r ;
+v4r WITH v6r v7r v8r v9r v10r v11r v12r v15r v16r ;
+v6r WITH v7r v8r v9r v10r v11r v12r v15r v16r ;
+v7r WITH v8r v9r v10r v11r v12r v15r v16r ;
+v8r WITH v9r v10r v11r v12r v15r v16r ;
+v9r WITH v10r v11r v12r v15r v16r ;
+v10r WITH v11r v12r v15r v16r ;
+v11r WITH v12r v15r v16r ;
+v12r WITH v15r v16r ;
+v15r WITH v16r ;
+ 
+
+ 
+ 
+ 
+NFC @1;
+
