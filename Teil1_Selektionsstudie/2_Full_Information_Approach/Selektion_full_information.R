@@ -42,7 +42,7 @@ fi_results <- subset(fi_results, CFI_unkorr >= 0.95)
 fi_results <- fi_results[fi_results$v_96==0,]
 
 
-##### Ergebnis: 111 Subskalen
+##### Ergebnis: 104 Subskalen
 nrow(fi_results)
 save(fi_results, file = "Zwischenergebnisse/Full_Information_Skalenauswahl.RData")
 
@@ -67,10 +67,11 @@ fi_results <- fi_results[, c("id", "glb", "alpha",  "mean_cor", "corSOCDES",
                              "omega", "CFI_korr", "TLI_korr", "AIC_korr", "BIC_korr", 
                              "CFI_unkorr", "TLI_unkorr", "AIC_unkorr", "BIC_unkorr",
                              "diff_tie", "diff_delib", "diff_open", "diff_learn",
-                             "no.items", "negativ.worded", "v_95",  "v_96", "v_97",
-                             "v_98r", "v_25", "v_26r", "v_27r", "v_28r", "v_253r",
-                             "v_254r", "v_255r", "v_256r", "v_257", "v_258", "v_259r",            
-                             "v_260r")]
+                             "no.items", "negativ.worded", "chi2_korr", "df_korr",          
+                             "p_korr", "chi2_unkorr", "df_unkorr", "p_unkorr",
+                             "v_95",  "v_96", "v_97", "v_98r", "v_25", "v_26r", 
+                             "v_27r", "v_28r", "v_253r", "v_254r", "v_255r", 
+                             "v_256r", "v_257", "v_258", "v_259r", "v_260r")]
 
 write.csv(round(fi_results, 2), file="Full_Information_beste_Skalen.csv", row.names = FALSE)
 nrow(fi_results)
@@ -80,6 +81,7 @@ overlapping <- round(apply(fi_results[, c("v_95",  "v_96", "v_97", "v_98r", "v_2
                                           "v_28r", "v_253r", "v_254r", "v_255r", "v_256r", "v_257", 
                                           "v_258", "v_259r", "v_260r")], 2, sum)/nrow(fi_results), 2)
 sort(overlapping, decreasing = TRUE)
-# Die 3 am häufigsten vorkommenden Items v_97, v_27r, v_28r sind auch Überschneidung der beiden selektierten Subskalen
+# Die 5 am häufigsten vorkommenden Items: v_97, v_28r, v_95, v_27r,v_255r
+# 3 davon in NFC-K2 und 4 in NFC-K3sind auch Überschneidung der beiden selektierten Subskalen
 
 setwd("..")

@@ -97,7 +97,6 @@ calc_df <- function(n, n_r){
   est_params <- n + n + cov_params
   df <- free_params - est_params
   return(df)
-  # return(df)
 }
 dfs <- calc_df(n, n_r)
 
@@ -226,11 +225,10 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
 }
 # TODO:
 ###### 3a) Modell ohne korrelierte Fehlerterme
-###### 3a) Modell ohne korrelierte Fehlerterme
-compute_fi(test, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,
-           stats_out = "Zwischenergebnisse/scales_uncorrelated.txt")
-compute_fi(test, file_in = "Zwischenergebnisse/input_corr", correlated_errors = TRUE,
-           stats_out = "Zwischenergebnisse/scales_correlated_test.txt")
+# compute_fi(test, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,
+#            stats_out = "Zwischenergebnisse/scales_uncorrelated.txt")
+# compute_fi(test, file_in = "Zwischenergebnisse/input_corr", correlated_errors = TRUE,
+#            stats_out = "Zwischenergebnisse/scales_correlated_test.txt")
 
 ###### 3a) Modell ohne korrelierte Fehlerterme
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,
@@ -255,7 +253,7 @@ for (pop in 1:population) {
 }
 
 # Set-up für batchweise Berechnung
-batchsize <- 5000
+batchsize <- min(nrow(population.matrix), 5000)
 n_batches <- (population %/% batchsize) + 1
 batch 	<- matrix(NA, n_batches, 2)
 
