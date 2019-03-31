@@ -109,8 +109,13 @@ population			<- nrow(population.matrix)
 
 # 2) Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
-compute_fi <- function(population.matrix, correlated_errors = FALSE,
-                       file_in, stats_out, mplus_path = NULL){
+compute_fi <- function(population.matrix, 
+                       correlated_errors = FALSE,
+                       file_in, 
+                       stats_out, 
+                       extract_output = TRUE,
+                       out_name = "",
+                       mplus_path = NULL){
   
   # Berechnet die Fit_statistiken aller Kurzskalen in einer Schleife mittels
   # MPlus und aggregiert die Ergebnisse innerhalb R 
@@ -173,7 +178,7 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
       if(is.null(mplus_path)){
         mplus_path <- "mplus.exe"
       }
-      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE)
+      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
       
     } else {
       if(tolower(Sys.info()["sysname"]) == "linux"){
@@ -181,7 +186,7 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
         if(is.null(mplus_path)){
           mplus_path <- "/opt/mplusdemo/mpdemo"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE)
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
         
         
       } else {
@@ -189,46 +194,43 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
         if(is.null(mplus_path)){
           mplus_path <- "/Applications/Mplus/mplus"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE) 
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE) 
       }
     }
     
-    
-    # III) Ergebnisse des MPlus-Outputs einsammeln 
-    output 			<- scan(file = paste(file_in, ".out", sep=""),
-                      what = "character", sep ="\n", quote = NULL)
-    
-    position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
-    statistics[1,1]		<- as.numeric(substr(output[position1[1]+1], 40, nchar(output[position1[1]+1])))
-    statistics[1,2]		<- as.numeric(substr(output[position1[1]+2], 40, nchar(output[position1[1]+2])))
-    statistics[1,3]		<- as.numeric(substr(output[position1[1]+3], 40, nchar(output[position1[1]+3])))
-    
-    position1         <- grep("cfi", output, ignore.case = TRUE)
-    statistics[1,4]		<- as.numeric(substr(output[position1[2]], 16, nchar(output[position1[2]])))
-    position1          <- grep("tli", output, ignore.case = TRUE)
-    statistics[1,5]		<- as.numeric(substr(output[position1[2]], 16, nchar(output[position1[2]])))
-    position1         <- grep("rmsea", output, ignore.case = TRUE) + 1
-    statistics[1,6]		<- as.numeric(substr(output[position1[1]], 20, nchar(output[position1[1]])))
-    position1         <- grep("AIC", output, ignore.case = TRUE)
-    statistics[1,7]		<- as.numeric(substr(output[position1[1]], 25, nchar(output[position1[1]])))
-    statistics[1,8]		<- as.numeric(substr(output[position1[1] + 1], 25, nchar(output[position1[1]])))
-    position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
-    
-    output 			<- scan(file = paste(file_in, ".out", sep=""),
-                      what = "character", sep ="\n", quote = NULL)
-    
-    id <- as.numeric(rownames(population.matrix)[K])
-    
-    write.table(cbind(id, statistics), stats_out, 
-                col.names = FALSE, row.names = FALSE, append=TRUE)
+    if(extract_output){
+      # III) Ergebnisse des MPlus-Outputs einsammeln 
+      output 			<- scan(file = paste(file_in, ".out", sep=""),
+                        what = "character", sep ="\n", quote = NULL)
+      
+      position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
+      statistics[1,1]		<- as.numeric(substr(output[position1[1]+1], 40, nchar(output[position1[1]+1])))
+      statistics[1,2]		<- as.numeric(substr(output[position1[1]+2], 40, nchar(output[position1[1]+2])))
+      statistics[1,3]		<- as.numeric(substr(output[position1[1]+3], 40, nchar(output[position1[1]+3])))
+      
+      position1         <- grep("cfi", output, ignore.case = TRUE)
+      statistics[1,4]		<- as.numeric(substr(output[position1[2]], 16, nchar(output[position1[2]])))
+      position1          <- grep("tli", output, ignore.case = TRUE)
+      statistics[1,5]		<- as.numeric(substr(output[position1[2]], 16, nchar(output[position1[2]])))
+      position1         <- grep("rmsea", output, ignore.case = TRUE) + 1
+      statistics[1,6]		<- as.numeric(substr(output[position1[1]], 20, nchar(output[position1[1]])))
+      position1         <- grep("AIC", output, ignore.case = TRUE)
+      statistics[1,7]		<- as.numeric(substr(output[position1[1]], 25, nchar(output[position1[1]])))
+      statistics[1,8]		<- as.numeric(substr(output[position1[1] + 1], 25, nchar(output[position1[1]])))
+      position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
+      
+      output 			<- scan(file = paste(file_in, ".out", sep=""),
+                        what = "character", sep ="\n", quote = NULL)
+      
+      id <- as.numeric(rownames(population.matrix)[K])
+      
+      write.table(cbind(id, statistics), stats_out, 
+                  col.names = FALSE, row.names = FALSE, append=TRUE)
+      
+    }
   }
 }
-# TODO:
-###### 3a) Modell ohne korrelierte Fehlerterme
-# compute_fi(test, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,
-#            stats_out = "Zwischenergebnisse/scales_uncorrelated.txt")
-# compute_fi(test, file_in = "Zwischenergebnisse/input_corr", correlated_errors = TRUE,
-#            stats_out = "Zwischenergebnisse/scales_correlated_test.txt")
+
 
 ###### 3a) Modell ohne korrelierte Fehlerterme
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,

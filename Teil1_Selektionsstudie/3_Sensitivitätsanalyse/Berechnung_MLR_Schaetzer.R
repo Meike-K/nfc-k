@@ -156,10 +156,10 @@ compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_corr_MLR", cor
            stats_out = "Zwischenergebnisse/scales_correlated_MLR.txt")
 
 
-###### Aggregieren der verschiedenen Statistiken
+# 3) Datenaufbereitung 
+################################################################################
 scales_uncorr <- read.table("Zwischenergebnisse/scales_uncorrelated_MLR.txt")
 scales_corr <- read.table("Zwischenergebnisse/scales_correlated_MLR.txt")
-
 
 results	<- cbind(scales_corr[, 1],  
                  population.matrix,
@@ -173,10 +173,40 @@ colnames(results) <- c("id",
                        "CFI_korr", "TLI_korr", "RMSEA_korr", "AIC_korr", "BIC_korr",
                        "chi2_unkorr", "df_unkorr", "p_unkorr",
                        "CFI_unkorr", "TLI_unkorr", "RMSEA_unkorr", "AIC_unkorr", "BIC_unkorr")################################################################################
+nrow(results)
+
+
+
+# 4) Vergleich zwischen ML und MLR
+################################################################################
+agg_results <- merge(fi_results, results, by = "id", suffixes = c("_ML", "_MLR")) 
+
+
+###### Plots zum Vergleich der Fit-Statistiken
+pdf("MLR_vs_ML.pdf")
+par(mfrow=c(2, 2))
+plot(agg_results$CFI_korr_MLR, agg_results$CFI_korr_ML,
+     xlab = "CFIkorr MLR",  ylab = "CFIkorr ML", main = "MLR vs. ML (korrelierte Fehler)")
+plot(agg_results$CFI_unkorr_MLR, agg_results$CFI_unkorr_ML,
+     xlab = "CFIunkorr MLR",  ylab = "CFIunkorr ML", main = "MLR vs. ML (unkorrelierte Fehler)")
+plot(agg_results$RMSEA_korr_MLR, agg_results$RMSEA_korr_ML,
+     xlab = "RMSEAkorr MLR",  ylab = "RMSEAkorr ML", main = "MLR vs. ML (unkorrelierte Fehler)")
+plot(agg_results$RMSEA_unkorr_MLR, agg_results$RMSEA_unkorr_ML,
+     xlab = "RMSEAunkorr MLR",  ylab = "RMSEAunkorr ML", main = "MLR vs. ML (unkorrelierte Fehler)")
+dev.off() 
+
+# What is the maximum RMSEA?
+max(agg_results$RMSEA_korr_MLR[agg_results$RMSEA_korr_ML < 0.05])
+max(agg_results$RMSEA_unkorr_MLR[agg_results$RMSEA_unkorr_ML < 0.05])
+
+sum(agg_results$CFI_korr_MLR > 0.95)
+sum(agg_results$CFI_unkorr_MLR > 0.95)
+
 
 
 ##### Abspeichern der Ergebnisse
-write.table(results, "Zwischenergebnisse/Full_Information_Statistiken_MLR.txt", 
-            col.names = TRUE, row.names = FALSE)
-save(results, file = "Zwischenergebnisse/Full_Information_Statistiken_MLR.RData")
+write.csv(results, file="MLR_Skalenauswahl.csv", row.names = FALSE)
+
+selection <-  results[results$id %in% final_scales, ]
+write.csv(selection, file="MLR_selektierte_Skalen.csv", row.names = FALSE)
 setwd("..")
