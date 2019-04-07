@@ -1,0 +1,20 @@
+TITLE: MODEL Fit NFC-K-1
+
+DATA: 
+file is nfc_k_1.txt;
+    
+VARIABLE: 
+names are
+nfc_1 nfc_2_r nfc_3_r nfc_4 nfc_5 ;
+usevariables are 
+nfc_1 nfc_2_r nfc_3_r nfc_4 nfc_5 ;
+missing = all (-77);
+
+MODEL:
+NFC BY nfc_1* nfc_2_r nfc_3_r nfc_4 nfc_5 ;
+nfc_2_r WITH nfc_3_r ;
+
+ 
+ 
+NFC @1;
+
