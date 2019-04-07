@@ -5,18 +5,23 @@
 ################################################################################
 # Teil 1: Kurzskalenselektion
 ################################################################################
-# I.4 Berechnung der Sensitivitätsanalyse Messinvarianz
+# 1.3.1 Berechnung der Sensitivitätsanalyse Messinvarianz
 ################################################################################
 
 
-# Einstellungen, Pakete und Daten
+# Einstellungen und Pakete
 ################################################################################
 setwd("3_Sensitivitätsanalyse")
 
 
-# 1) Laden und Rgenderktion der Population Matrix
+# Laden und Rgenderktion der Population Matrix
 ################################################################################
-# Nur MI test der vorab selektierten harten Kriterien:
+# MLR wird nur auf den besten Skalen berechnet, basierend auf:
+# - Skalen mit 4 oder 5 Items
+# - Skalen mit mindestens 25% und maximal 75% verneinter Items
+# - Skalen mit Cronbachs alpha und GLB >= 0.7
+# - Skalen mit Mindestfit CFI >= 0.95
+# - Skalen ohne Item v_96 (Item 2), da zu komplex formuliert
 
 # Laden der Populationsmatrix
 population.matrix		<- read.table("../2_Full_Information_Approach/Zwischenergebnisse/population.matrix.txt")
@@ -33,7 +38,7 @@ dim(population.matrix)[1] == dim(fi_results)[1]
 
 
 
-# 2) Fit Statistiken für alle NFC-Kurzformen berechnen 
+# Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
 
 compute_mi <- function(population.matrix,
@@ -231,36 +236,37 @@ compute_mi <- function(population.matrix,
     }
   }
 }
-#TODO:
-longform <- population.matrix[1, ]
 
 
-###### 2a) Messinvarianz bezüglich Geschlecht
+# #TODO:
+# longform <- population.matrix[1, ]
+
+
+######Messinvarianz bezüglich Geschlecht
 # Selektierte Kurzskalen
 compute_mi(population.matrix, file_in = "Zwischenergebnisse/input_mi_gender", 
            correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/mi_gender_scales_correlated.txt")
 
+# #TODO:
+# compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_gender", 
+#            correlated_errors = TRUE,
+#            stats_out = "Zwischenergebnisse/mi_gender_longform_correlated.txt")
 
-# Langskala
-compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_gender", 
-           correlated_errors = TRUE,
-           stats_out = "Zwischenergebnisse/mi_gender_longform_correlated.txt")
 
-
-###### 2b) Messinvarianz bezüglich Bildungslevel
+###### Messinvarianz bezüglich Bildungslevel
 # Kurzskalen
 compute_mi(population.matrix, file_in = "Zwischenergebnisse/input_mi_edu", 
            correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/mi_education_scales_correlated.txt")
 
-# Langskala
-compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_edu", 
-           correlated_errors = TRUE,
-           stats_out = "Zwischenergebnisse/mi_education_longform_correlated.txt")
+# # Langskala
+# compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_edu", 
+#            correlated_errors = TRUE,
+#            stats_out = "Zwischenergebnisse/mi_education_longform_correlated.txt")
 
 
-# 3) Aufbereiten der Ergebnisse
+# Aufbereiten der Ergebnisse
 ################################################################################
 col_names <- c("id","v1","v2","v3","v4r","v5","v6r","v7r","v8r","v9r",
                   "v10r","v11r","v12r","v13","v14","v15r","v16r",
@@ -372,25 +378,28 @@ selected_variables <- c("id", "v1", "v2", "v3", "v4r", "v5", "v6r", "v7r", "v8r"
 mi_statistics <- mi_statistics[, selected_variables]
 
 
-# 4) Berechnungen
+# Auswertung der Ergebnisse
 ################################################################################
-### Anzahl Fehler
+
+##### Anzahl Fehler
 models <- c("chi2_config_gender", "chi2_metric_gender", "chi2_scalar_gender",
             "chi2_config_edu", "chi2_metric_edu", "chi2_scalar_edu")
 for (model in models){
   print(paste0("Number of NAs in ", model, ": ", sum(is.na(mi_statistics[[model]]))))
 }
 
-
 n <- nrow(mi_statistics)
 selection <-  mi_statistics[mi_statistics$id %in% final_scales, ]
 
-##### Vergleich zwischen Anteil von Skalen mit erfüllter Messinvarianz und 
-# den selektierten SUbskalen
+
+##### Wie viel % der Skalen erfüllen jeweils Messinvarianzkriterium?
 
 ### Geschlecht
 # Metric
+
+# Anteil aller getesteten Skalen
 round(sum(mi_statistics$d_p_metric_gender > 0.05)/n, 2)
+# Ergebnis für selektierte Skalen
 selection$d_p_metric_gender > 0.05
 
 round(sum(mi_statistics$d_cfi_metric_gender < 0.01)/n, 2)
@@ -434,7 +443,6 @@ selection$d_rmsea_scalar_edu < 0.01
 
 
 ##### Wie viele Skalen haben alle Kriterien erfüllt
-### Bildung
 sum((mi_statistics$d_cfi_metric_edu < 0.01) & 
     (mi_statistics$d_cfi_metric_edu < 0.01) & 
     (mi_statistics$d_p_metric_edu > 0.05) & 

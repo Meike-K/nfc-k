@@ -3,15 +3,26 @@
 # Ein Vergleich traditioneller und computergestützter Methoden zur Erstellung 
 # einer deutschsprachigen Need for Cognition Kurzskala
 ################################################################################
-# II. Kurzskalenvalidierung
+# Teil 2: Kurzskalenvalidierung
 ################################################################################
-
-
 
 
 
 # Einstellungen und Pakete
 ################################################################################
+#!# Anpassen des aktuellen Arbeitsverzeichnisses
+path <- "Teil2_Selektionsstudie/"
+setwd(path)
+
+
+#!# Anpassen des Pfades zum MPLus-Programm, z.B.
+# Windows: "mplus.exe"
+# Linux: "/opt/mplusdemo/mpdemo"
+# Mac: "/Applications/Mplus/mplus"
+mplus_path <<- "/opt/mplusdemo/mpdemo"
+
+
+# Notwendige Pakete
 if(!require("foreign")){
   install.packages("foreign")
 }
@@ -24,23 +35,6 @@ if(!require("psych")){
 if(!require("Hmisc")){
   install.packages("Hmisc")
 }
-
-
-# if(!require("lavaan")){
-#   install.packages("lavaan")
-# }
-
-
-
-#!# Set your current working directory
-path <- "Teil2_Selektionsstudie/"
-setwd(path)
-
-#!# Set Path of the MPlus executable, e.g.
-# Windows: "mplus.exe"
-# Linux: "/opt/mplusdemo/mpdemo"
-# Mac: "/Applications/Mplus/mplus"
-mplus_path <<- "/opt/mplusdemo/mpdemo"
 
 
 
@@ -60,14 +54,9 @@ data_labels <- read.spss("0_Daten/Datensatz der Validierung.sav",
 
 
 
-
-
-# Stichprobe und Deskriptive Statistiken
+# Deskriptive Ergebnisse zur Stichprobe via SPSS
 ################################################################################
-# siehe SPSS-Skript: Berechnungen_Validierung_Ergänzungen.sps
-describe(data_labels[, c("Geschlecht", "Alter", "Abschluss", "Bildung", "Bildungkategorie")])
-
-
+# siehe "0_Daten/Syntax Datenaufbereitung.sps"
 
 
 
@@ -178,7 +167,7 @@ compute_fit("1_Analysen/input_nfc_k_3")
 
 # Korrelationen aller NFC-Skalen mit verwandten Konstrukten (Tabelle 2)
 ################################################################################
-# siehe auch SPSS-Syntax
+# siehe auch SPSS-Syntax: Berechnungen_Validierung_Ergänzungen.sps
 
 vars <- c("NFC", "Offenheit", "Gewissenhaftigkeit", "Deliberation", "TIE", "Lernziel_Gesamt", "Vermeid_gesamt", "SozErwuenscht")
 scales <- c("NFC_K_1", "NFC_K_2", "NFC_K_3", "NFC")
@@ -196,10 +185,11 @@ for(i in 1:nrow(corrs)){
 round(corrs, 3)
 
 
-# Korrelation mit der Langskala
+
+###### Korrelation mit der Langskala
 round(corrs["NFC", c("NFC_K_1", "NFC_K_2", "NFC_K_3")], 2)
 
-# Mittlere Korrelation mit Verwandten Konstrukten
+##### Mittlere Korrelation mit verwandten Konstrukten
 (mean_cors <- round(apply(corrs[c("Offenheit", "Deliberation", "TIE", "Lernziel_Gesamt"), 
                   c("NFC_K_1", "NFC_K_2", "NFC_K_3")], 2, mean), 2))
 (n_nfc_k <- table(data$Variante_NFC_K))
@@ -211,7 +201,7 @@ print(r.test(n_nfc_k[2], mean_cors[2], mean_cors[3]), digits=3)
 print(r.test(n_nfc_k[1], mean_cors[1], mean_cors[3]), digits=3)
 
 
-# Korrelation mit sozialer Erwünschtheit
+##### Korrelation mit sozialer Erwünschtheit
 round(corrs["SozErwuenscht", c("NFC_K_1", "NFC_K_2", "NFC_K_3")], 2)
 
 

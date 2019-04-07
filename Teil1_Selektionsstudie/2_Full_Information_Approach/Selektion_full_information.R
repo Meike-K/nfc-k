@@ -3,16 +3,23 @@
 # Ein Vergleich traditioneller und computergestützter Methoden zur Erstellung 
 # einer deutschsprachigen Need for Cognition Kurzskala
 ################################################################################
-# I. Selektionsstudie
+# Teil 1: Selektionsstudie
 ################################################################################
-# I.3 Seĺektion von Skalen basierend auf dem Full Information Approach
+# 1.2.2 Seĺektion von Skalen basierend auf dem Full Information Approach
+################################################################################
+
+
+# Einstellungen, Pakete und Daten
 ################################################################################
 
 setwd("2_Full_Information_Approach/")
 load("Zwischenergebnisse/Full_Information_Statistiken.RData")
 
 
-###### Check ob zufriedenstellende Reliabilität bei wenigen Items
+# Selektion der besten Skalen
+################################################################################
+
+# Check ob zufriedenstellende Reliabilität bei wenigen Items
 plot(results$no.items, results$alpha,
      xlab = "Anzahl Items der Skala", ylab = "Cronbachs alpha")
 # Ergebnis: keine zufriedenstellende Reliabilität bei < 4 Items
@@ -82,6 +89,6 @@ overlapping <- round(apply(fi_results[, c("v_95",  "v_96", "v_97", "v_98r", "v_2
                                           "v_258", "v_259r", "v_260r")], 2, sum)/nrow(fi_results), 2)
 sort(overlapping, decreasing = TRUE)
 # Die 5 am häufigsten vorkommenden Items: v_97, v_28r, v_95, v_27r,v_255r
-# 3 davon in NFC-K2 und 4 in NFC-K3sind auch Überschneidung der beiden selektierten Subskalen
+# 3 davon in NFC-K2 und 4 in NFC-K3 
 
 setwd("..")

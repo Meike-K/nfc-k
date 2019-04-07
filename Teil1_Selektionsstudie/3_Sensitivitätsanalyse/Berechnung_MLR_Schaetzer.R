@@ -14,9 +14,15 @@
 setwd("3_Sensitivitätsanalyse")
 
 
-# 1) Laden und Reduktion der Population Matrix
+
+# Laden und Reduktion der Population Matrix
 ################################################################################
-# Nur MI test der vorab selektierten harten Kriterien:
+# MLR wird nur auf den besten Skalen berechnet, basierend auf:
+# - Skalen mit 4 oder 5 Items
+# - Skalen mit mindestens 25% und maximal 75% verneinter Items
+# - Skalen mit Cronbachs alpha und GLB >= 0.7
+# - Skalen mit Mindestfit CFI >= 0.95
+# - Skalen ohne Item v_96 (Item 2), da zu komplex formuliert
 
 # Laden der Populationsmatrix
 population.matrix		<- read.table("../2_Full_Information_Approach/Zwischenergebnisse/population.matrix.txt")
@@ -29,7 +35,7 @@ dim(population.matrix)[1] == dim(fi_results)[1]
 
 
 
-# 2) Fit Statistiken für alle NFC-Kurzformen berechnen 
+# Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
 compute_fi <- function(population.matrix, correlated_errors = FALSE,
                        file_in, stats_out, mplus_path = NULL){
@@ -147,16 +153,16 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
 }
 
 
-###### 3a) Modell ohne korrelierte Fehlerterme
+###### Modell ohne korrelierte Fehlerterme
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_uncorr_MLR", correlated_errors = FALSE,
            stats_out = "Zwischenergebnisse/scales_uncorrelated_MLR.txt")
 
-###### 3b) Modell mit korrelierten Fehlertermen
+###### Modell mit korrelierten Fehlertermen
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_corr_MLR", correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/scales_correlated_MLR.txt")
 
 
-# 3) Datenaufbereitung 
+# Datenaufbereitung 
 ################################################################################
 scales_uncorr <- read.table("Zwischenergebnisse/scales_uncorrelated_MLR.txt")
 scales_corr <- read.table("Zwischenergebnisse/scales_correlated_MLR.txt")
@@ -177,7 +183,7 @@ nrow(results)
 
 
 
-# 4) Vergleich zwischen ML und MLR
+# Vergleich zwischen ML und MLR
 ################################################################################
 agg_results <- merge(fi_results, results, by = "id", suffixes = c("_ML", "_MLR")) 
 
@@ -195,7 +201,7 @@ plot(agg_results$RMSEA_unkorr_MLR, agg_results$RMSEA_unkorr_ML,
      xlab = "RMSEAunkorr MLR",  ylab = "RMSEAunkorr ML", main = "MLR vs. ML (unkorrelierte Fehler)")
 dev.off() 
 
-# What is the maximum RMSEA?
+# Was ist der höchste RMSEA?
 max(agg_results$RMSEA_korr_MLR[agg_results$RMSEA_korr_ML < 0.05])
 max(agg_results$RMSEA_unkorr_MLR[agg_results$RMSEA_unkorr_ML < 0.05])
 
@@ -209,4 +215,7 @@ write.csv(results, file="MLR_Skalenauswahl.csv", row.names = FALSE)
 
 selection <-  results[results$id %in% final_scales, ]
 write.csv(selection, file="MLR_selektierte_Skalen.csv", row.names = FALSE)
+
+
+
 setwd("..")

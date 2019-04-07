@@ -5,12 +5,16 @@
 ################################################################################
 # Teil 1: Kurzskalenselektion
 ################################################################################
-# I.1 Berechnung des Full Information Approach
+# 1.2.1 Berechnung des Full Information Approach
 ################################################################################
 
 
-# Einstellungen, Pakete und Daten
+
+# Einstellungen und Pakete
 ################################################################################
+setwd("2_Full_Information_Approach/")
+
+
 if(!require("psych")){
   install.packages("psych")
 }
@@ -27,7 +31,7 @@ if(!require("foreign")){
   install.packages("foreign")
 }
 
-setwd("2_Full_Information_Approach/")
+
 
 # Datenaufbereitung
 ################################################################################
@@ -35,7 +39,7 @@ setwd("2_Full_Information_Approach/")
 # - N = 282
 # - Alle Variablen
 # - Alle berechneten Skalen
-# - Subjekt-ID: Teilnehmer
+# - Subjekt-ID: ID
 
 raw_data <- read.spss("../0_Daten/Datensatz der Selektion.sav", 
                       to.data.frame=TRUE, use.value.labels = FALSE)
@@ -59,21 +63,21 @@ data <- raw_data[, selected_variables]
 data[is.na(data)] <- -77
 write.table(data, "Zwischenergebnisse/NFC_data.txt", col.names = FALSE, row.names = FALSE)
 
-# Datenwerden auch zur Messinvarianzanalyse abgelegt
+# Date nwerden auch zur Messinvarianzanalyse abgelegt
 write.table(data, "../3_Sensitivitätsanalyse/Zwischenergebnisse/NFC_data.txt", col.names = FALSE, row.names = FALSE)
 
 
 
-# 1) Population Grid der zu testenden Skalen berechnen
+# Population Grid der zu testenden Skalen berechnen
 ################################################################################
 
-# Set aller möglichen Itemkombinationen
+##### Set aller möglichen Itemkombinationen
 items.long.scale		<- 16 # Items der Ursprungsskala
 population.matrix		<- as.matrix(expand.grid(lapply(numeric(items.long.scale), function(x) c(0, 1))))
 variable.names	<- c("v1","v2","v3","v4r","v5","v6r","v7r","v8r","v9r","v10r","v11r","v12r","v13","v14","v15r","v16r")
 
 
-# Reduktion des Itemsets, Speichern und Lesen
+##### Reduktion des Itemsets, Speichern und Lesen
 # (Hierbei werden Rownames vergeben, die im weiteren Verlauf als ID der Subskalen genutzt werden)
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) < 3)),]
 write.table(population.matrix, "Zwischenergebnisse/population.matrix.txt", col.names = F, row.names = F)
@@ -81,11 +85,10 @@ population.matrix		<- read.table("Zwischenergebnisse/population.matrix.txt")
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 7)),]
 
 
-
 # TODO: Further selection of runs (TEMPORARY)
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 5)),]	
 
-# Entfernen von Skalen die im korrelierten Modell negative Freiheitsgrade hätten
+###### Entfernen von Skalen die im korrelierten Modell negative Freiheitsgrade hätten
 n <- rowSums(population.matrix)
 n_r <- rowSums(population.matrix[, c(4, 6, 7, 8, 9, 10, 11, 12, 15, 16)])
 
@@ -110,7 +113,7 @@ population			<- nrow(population.matrix)
 
 
 
-# 2) Fit Statistiken für alle NFC-Kurzformen berechnen 
+# Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
 compute_fi <- function(population.matrix, 
                        correlated_errors = FALSE,
@@ -221,10 +224,7 @@ compute_fi <- function(population.matrix,
       statistics[1,7]		<- as.numeric(substr(output[position1[1]], 25, nchar(output[position1[1]])))
       statistics[1,8]		<- as.numeric(substr(output[position1[1] + 1], 25, nchar(output[position1[1]])))
       position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
-      
-      output 			<- scan(file = paste(file_in, ".out", sep=""),
-                        what = "character", sep ="\n", quote = NULL)
-      
+
       id <- as.numeric(rownames(population.matrix)[K])
       
       write.table(cbind(id, statistics), stats_out, 
@@ -235,17 +235,17 @@ compute_fi <- function(population.matrix,
 }
 
 
-###### 3a) Modell ohne korrelierte Fehlerterme
+###### Modell ohne korrelierte Fehlerterme
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_uncorr", correlated_errors = FALSE,
            stats_out = "Zwischenergebnisse/scales_uncorrelated.txt")
 
-###### 3b) Modell mit korrelierten Fehlertermen
+###### Modell mit korrelierten Fehlertermen
 compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_corr", correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/scales_correlated.txt")
 
 
 
-# 4) Reliabilitäts- und Validitätskennzahlen für alle Kurzskalen berechnen
+# Reliabilitäts- und Validitätskennzahlen für alle Kurzskalen berechnen
 ################################################################################
 
 # Datensatz für die Population aller Kurzskalen
@@ -379,14 +379,12 @@ corr_learn <- cor(raw_data$NFC, raw_data$Lernziel_Gesamt, use = "pairwise.comple
 results$diff_learn <- results$corLEARN - corr_learn
 
 
-# TODO
-# Check statistics of the selected short scales
-results[results$id %in% c(423, 5226), ]
-
 ##### Abspeichern der Ergebnisse
 write.table(results, "Zwischenergebnisse/Full_Information_Statistiken.txt",
             col.names = TRUE, row.names = FALSE)
 save(results, file = "Zwischenergebnisse/Full_Information_Statistiken.RData")
+
+
 
 setwd("..")
 
