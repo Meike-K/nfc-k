@@ -7,12 +7,11 @@
 ################################################################################
 # I.5 Berechnung der Sensitivitätsanalyse MLR-Schätzer
 ################################################################################
-
+print("##### Sensitivitätsanalyse MLR-Schätzer #####")
 
 # Einstellungen, Pakete und Daten
 ################################################################################
 setwd("3_Sensitivitätsanalyse")
-
 
 
 # Laden und Reduktion der Population Matrix
@@ -37,7 +36,7 @@ dim(population.matrix)[1] == dim(fi_results)[1]
 
 # Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
-compute_fi <- function(population.matrix, correlated_errors = FALSE,
+compute_fi_simple <- function(population.matrix, correlated_errors = FALSE,
                        file_in, stats_out, mplus_path = NULL){
   
   # Berechnet die Fit_statistiken aller Kurzskalen in einer Schleife mittels
@@ -51,12 +50,14 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
   
   population <- nrow(population.matrix)
   statistics		<- matrix(NA, 1, 8)
+  print(paste0("Starting computation of ", population, " subscales"))
   
   for (K in 1:population) {
     
     # I) Input-Syntax anpassen
     input             <- scan(file = paste(file_in, "_base", ".inp", sep=""), 
-                              what = "character", sep ="\n", quote = NULL)
+                              what = "character", sep ="\n", quote = NULL,
+                              quiet = TRUE)
     
     
     # Anpassung USEVARIABLES
@@ -91,7 +92,7 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
     }
     
     input[is.na(input)] 	 <- paste(" ", collapse = " ")
-    print(file_in)
+
     write.table(input, file = paste(file_in, ".inp", sep = ""), 
                 quote = FALSE, col.names = FALSE, row.names = FALSE)
     
@@ -101,7 +102,8 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
       if(is.null(mplus_path)){
         mplus_path <- "mplus.exe"
       }
-      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE)
+      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), 
+             wait = TRUE, ignore.stdout = TRUE)
       
     } else {
       if(tolower(Sys.info()["sysname"]) == "linux"){
@@ -109,7 +111,8 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
         if(is.null(mplus_path)){
           mplus_path <- "/opt/mplusdemo/mpdemo"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE)
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE)
         
         
       } else {
@@ -117,14 +120,15 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
         if(is.null(mplus_path)){
           mplus_path <- "/Applications/Mplus/mplus"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), wait = TRUE) 
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE) 
       }
     }
     
     
     # III) Ergebnisse des MPlus-Outputs einsammeln 
     output 			<- scan(file = paste(file_in, ".out", sep=""),
-                      what = "character", sep ="\n", quote = NULL)
+                      what = "character", sep ="\n", quote = NULL, quiet = TRUE)
     
     position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
     statistics[1,1]		<- as.numeric(sub("\\*", "", substr(output[position1[1]+1], 40, nchar(output[position1[1]+1]))))
@@ -141,10 +145,7 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
     statistics[1,7]		<- as.numeric(substr(output[position1[1]], 25, nchar(output[position1[1]])))
     statistics[1,8]		<- as.numeric(substr(output[position1[1] + 1], 25, nchar(output[position1[1]])))
     position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
-    
-    output 			<- scan(file = paste(file_in, ".out", sep=""),
-                      what = "character", sep ="\n", quote = NULL)
-    
+
     id <- as.numeric(rownames(population.matrix)[K])
     
     write.table(cbind(id, statistics), stats_out, 
@@ -154,16 +155,17 @@ compute_fi <- function(population.matrix, correlated_errors = FALSE,
 
 
 ###### Modell ohne korrelierte Fehlerterme
-compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_uncorr_MLR", correlated_errors = FALSE,
+compute_fi_simple(population.matrix, file_in = "Zwischenergebnisse/input_uncorr_MLR", correlated_errors = FALSE,
            stats_out = "Zwischenergebnisse/scales_uncorrelated_MLR.txt")
 
 ###### Modell mit korrelierten Fehlertermen
-compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_corr_MLR", correlated_errors = TRUE,
+compute_fi_simple(population.matrix, file_in = "Zwischenergebnisse/input_corr_MLR", correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/scales_correlated_MLR.txt")
 
 
 # Datenaufbereitung 
 ################################################################################
+print("##### Aufbereitung der Ergebnisse #####")
 scales_uncorr <- read.table("Zwischenergebnisse/scales_uncorrelated_MLR.txt")
 scales_corr <- read.table("Zwischenergebnisse/scales_correlated_MLR.txt")
 
@@ -180,13 +182,12 @@ colnames(results) <- c("id",
                        "chi2_unkorr", "df_unkorr", "p_unkorr",
                        "CFI_unkorr", "TLI_unkorr", "RMSEA_unkorr", "AIC_unkorr", "BIC_unkorr")################################################################################
 nrow(results)
-
+agg_results <- merge(fi_results, results, by = "id", suffixes = c("_ML", "_MLR")) 
 
 
 # Vergleich zwischen ML und MLR
 ################################################################################
-agg_results <- merge(fi_results, results, by = "id", suffixes = c("_ML", "_MLR")) 
-
+print("##### Vergleich ML vs. MLR #####")
 
 ###### Plots zum Vergleich der Fit-Statistiken
 pdf("MLR_vs_ML.pdf")
@@ -201,12 +202,11 @@ plot(agg_results$RMSEA_unkorr_MLR, agg_results$RMSEA_unkorr_ML,
      xlab = "RMSEAunkorr MLR",  ylab = "RMSEAunkorr ML", main = "MLR vs. ML (unkorrelierte Fehler)")
 dev.off() 
 
-# Was ist der höchste RMSEA?
+# Was ist der höchste RMSEA der Skalen mit ML-RMSEA < 0.05?
 max(agg_results$RMSEA_korr_MLR[agg_results$RMSEA_korr_ML < 0.05])
 max(agg_results$RMSEA_unkorr_MLR[agg_results$RMSEA_unkorr_ML < 0.05])
 
-sum(agg_results$CFI_korr_MLR > 0.95)
-sum(agg_results$CFI_unkorr_MLR > 0.95)
+sum(agg_results$CFI_korr_MLR > 0.95 & agg_results$CFI_unkorr_MLR > 0.95)
 
 
 

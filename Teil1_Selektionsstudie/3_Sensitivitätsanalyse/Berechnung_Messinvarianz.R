@@ -7,7 +7,7 @@
 ################################################################################
 # 1.3.1 Berechnung der Sensitivitätsanalyse Messinvarianz
 ################################################################################
-
+print("##### Sensitivitätsanalyse Messinvarianz #####")
 
 # Einstellungen und Pakete
 ################################################################################
@@ -29,7 +29,6 @@ variable.names	<- c("v1","v2","v3","v4r","v5","v6r","v7r","v8r","v9r","v10r","v1
 
 # Langskala
 longform <- population.matrix[nrow(population.matrix),]
-
 
 # Skalenauswahl aus Full Information Approach
 load("../2_Full_Information_Approach/Zwischenergebnisse/Full_Information_Skalenauswahl.RData")
@@ -60,12 +59,14 @@ compute_mi <- function(population.matrix,
   
   population <- nrow(population.matrix)
   statistics		<- matrix(NA, 1, 42)
+  print(paste0("Starting computation of ", population, " subscales"))
   
   for (K in 1:population) {
     
     # I) Input-Syntax anpassen
     input             <- scan(file = paste(file_in, "_base", ".inp", sep=""), 
-                              what = "character", sep ="\n", quote = NULL)
+                              what = "character", sep ="\n", quote = NULL,
+                              quiet = TRUE)
     
     
     # Anpassung USEVARIABLES
@@ -110,7 +111,8 @@ compute_mi <- function(population.matrix,
       if(is.null(mplus_path)){
         mplus_path <- "mplus.exe"
       }
-      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+             wait = TRUE, ignore.stdout = TRUE)
       
     } else {
       if(tolower(Sys.info()["sysname"]) == "linux"){
@@ -118,7 +120,8 @@ compute_mi <- function(population.matrix,
         if(is.null(mplus_path)){
           mplus_path <- "/opt/mplusdemo/mpdemo"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE)
         
         
       } else {
@@ -126,14 +129,16 @@ compute_mi <- function(population.matrix,
         if(is.null(mplus_path)){
           mplus_path <- "/Applications/Mplus/mplus"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE) 
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE) 
       }
     }
     
     if(extract_output){
       # III) Ergebnisse des MPlus-Outputs "Invariance Testing" einsammeln 
       output 			<- scan(file = paste(file_in, ".out", sep=""),
-                        what = "character", sep ="\n", quote = NULL)
+                        what = "character", sep ="\n", quote = NULL,
+                        quiet = TRUE)
       
       # Chi² Configural
       position1           <- grep("Configural", output, ignore.case = TRUE)
@@ -238,8 +243,8 @@ compute_mi <- function(population.matrix,
 }
 
 
-# #TODO:
-# longform <- population.matrix[1, ]
+#TODO:
+longform <- population.matrix[1, ]
 
 
 ######Messinvarianz bezüglich Geschlecht
@@ -248,26 +253,27 @@ compute_mi(population.matrix, file_in = "Zwischenergebnisse/input_mi_gender",
            correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/mi_gender_scales_correlated.txt")
 
-# #TODO:
-# compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_gender", 
-#            correlated_errors = TRUE,
-#            stats_out = "Zwischenergebnisse/mi_gender_longform_correlated.txt")
+# Langskala
+compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_gender",
+           correlated_errors = TRUE,
+           stats_out = "Zwischenergebnisse/mi_gender_longform_correlated.txt")
 
 
 ###### Messinvarianz bezüglich Bildungslevel
-# Kurzskalen
+# Selektierte Kurzskalen
 compute_mi(population.matrix, file_in = "Zwischenergebnisse/input_mi_edu", 
            correlated_errors = TRUE,
            stats_out = "Zwischenergebnisse/mi_education_scales_correlated.txt")
 
-# # Langskala
-# compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_edu", 
-#            correlated_errors = TRUE,
-#            stats_out = "Zwischenergebnisse/mi_education_longform_correlated.txt")
+# Langskala
+compute_mi(longform, file_in = "Zwischenergebnisse/input_mi_edu",
+           correlated_errors = TRUE,
+           stats_out = "Zwischenergebnisse/mi_education_longform_correlated.txt")
 
 
 # Aufbereiten der Ergebnisse
 ################################################################################
+print("##### Aufbereitung der Ergebnisse #####")
 col_names <- c("id","v1","v2","v3","v4r","v5","v6r","v7r","v8r","v9r",
                   "v10r","v11r","v12r","v13","v14","v15r","v16r",
                   "Configural","params_config","chi2_config","df_config","p_config",
@@ -380,7 +386,7 @@ mi_statistics <- mi_statistics[, selected_variables]
 
 # Auswertung der Ergebnisse
 ################################################################################
-
+print("##### Messinvarianz Ergebnisse #####")
 ##### Anzahl Fehler
 models <- c("chi2_config_gender", "chi2_metric_gender", "chi2_scalar_gender",
             "chi2_config_edu", "chi2_metric_edu", "chi2_scalar_edu")
@@ -443,7 +449,8 @@ selection$d_rmsea_scalar_edu < 0.01
 
 
 ##### Wie viele Skalen haben alle Kriterien erfüllt
-sum((mi_statistics$d_cfi_metric_edu < 0.01) & 
+
+n_mi <- sum((mi_statistics$d_cfi_metric_edu < 0.01) & 
     (mi_statistics$d_cfi_metric_edu < 0.01) & 
     (mi_statistics$d_p_metric_edu > 0.05) & 
     (mi_statistics$d_cfi_scalar_edu < 0.01) & 
@@ -453,6 +460,7 @@ sum((mi_statistics$d_cfi_metric_edu < 0.01) &
     (mi_statistics$d_p_metric_gender > 0.05) & 
     (mi_statistics$d_cfi_scalar_gender < 0.01) & 
     (mi_statistics$d_p_scalar_edu > 0.05))/n
+print(paste0("Anteil der Skalen, die alle Kriterien der Messinvarianz erfüllen: ", round(n_mi, 2)))
 
 
 ##### Output

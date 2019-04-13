@@ -1,15 +1,15 @@
 * Encoding: UTF-8.
 
 ******************************************************************************************************.
-*************************** Rekodierungen und Skalenbildung **********************************.
+****************** Rekodierungen, Skalenbildung und Reliabilität *************************************.
 ******************************************************************************************************.
 
 *** Bildung ***.
 
 * Rekodierung des Bildungsabschlusses in niedrigere, mitllere und höhere Bildung.
-RECODE Abschluss (1=1) (2=1) (3=1) (4=1) (5=2) (6=2) (7=3) (8=3) (9=3) (10=3) INTO Bildungkategorie.
-VARIABLE LABELS Bildungkategorie 'Bildungkategorie'. 
-VALUE LABELS Bildungkategorie 
+RECODE Abschluss (1=1) (2=1) (3=1) (4=1) (5=2) (6=2) (7=3) (8=3) (9=3) (10=3) INTO Bildung.
+VARIABLE LABELS Bildung 'Bildung'. 
+VALUE LABELS Bildung
 1 'niedrige Bildung' 2 'mittlere Bildung' 3 'höhere Bildung'.
 EXECUTE.
 
@@ -33,28 +33,9 @@ RELIABILITY
   /MODEL=ALPHA
   /STATISTICS=DESCRIPTIVE CORR.
 
-*Bidlung der Skala Offenheit.
+*Bildung der Skala Offenheit.
 Compute Offenheit= MEAN(v_8r, v_9r, v_10, v_11r, v_12r, v_13r, v_14, v_15r, v_16, v_17r, v_18, v_19).
 des Offenheit.
-
-
-
-*** Kurzskala NFC_K (Kurzskala NFC aus klassischer Itemanalyse) ***.
-
-*Rekodierung der invertierten Items.
-Compute v_135r = 8 - v_135. 
-Compute v_138r = 8 - v_138.
-
-*Reliabilität NFC-K.
-RELIABILITY
-  /VARIABLES=v_135r v_136 v_137 v_138r
-  /SCALE('ALL VARIABLES') ALL
-  /MODEL=ALPHA
-  /STATISTICS=DESCRIPTIVE CORR.
-
-*Bidlung der Skala NFC-K.
-Compute NFC_K= MEAN(v_135r + v_136 + v_137 + v_138r). 
-des NFC_K.
 
 
 *** Präferenz für Deliberation ***. 
@@ -142,6 +123,8 @@ des Lernziel_Beruf.
 COMPUTE Lernziel_Gesamt= sum.1 (Lernziel_Schule, Lernziel_Studium, Lernziel_Beruf).
 
 
+
+
 *** Soziale Erwünschtheit ***. 
 
 ** Selbsttäuschung **.
@@ -195,6 +178,14 @@ des Fremdtaeuschung.
 Compute SozErwuenscht = MEAN(v_34, v_35r, v_36, v_37r, v_38r, v_39, v_40r, v_41, v_42r, v_43r, v_110r, v_111r, v_112, v_113r, v_114r, v_115, v_116r, v_117r, v_118, v_119r). 
 des SozErwuenscht.
 
+*Reliabilität der Gesamtskala Soziale Erwünschtheit..
+RELIABILITY
+  /VARIABLES=v_34 v_35r v_36 v_37r v_38r v_39 v_40r v_41 v_42r v_43r v_110r v_111r v_112 v_113r v_114r v_115 v_116r v_117r v_118 v_119r
+  /SCALE('ALL VARIABLES') ALL
+  /MODEL=ALPHA
+  /STATISTICS=DESCRIPTIVE SCALE
+  /SUMMARY=TOTAL.
+
 
 *** NFC 16-Item-Langform ***.
 
@@ -206,27 +197,25 @@ Compute v_28r = 8 - v_28.
 Compute v_253r = 8 - v_253.
 Compute v_254r = 8 - v_254.
 Compute v_255r = 8 - v_255.
-Compute v_255r = 8 - v_255.
-Compute v_255r = 8 - v_255.
 Compute v_256r = 8 - v_256.
 Compute v_259r = 8 - v_259.
 Compute v_260r = 8 - v_260.
 
 *Reliabilität und Itemstatistiken NFC 16-Item-Langform*.
 RELIABILITY
-  /VARIABLES=v_96 v_97 v_98r v_25 v_26r v_27r v_28r v_253r v_254r v_255r v_256r v_257 v_258 v_259r v_260r
+  /VARIABLES= v_95 v_96 v_97 v_98r v_25 v_26r v_27r v_28r v_253r v_254r v_255r v_256r v_257 v_258 v_259r v_260r
   /SCALE('ALL VARIABLES') ALL
   /MODEL=ALPHA
   /STATISTICS=DESCRIPTIVE SCALE
   /SUMMARY=TOTAL.
 
 * Bildung der Skala NFC 16-Item-Langform.
-Compute NFC= MEAN(v_96, v_97, v_98r, v_25, v_26r, v_27r, v_28r, v_253r, v_254r, v_255r, v_256r, v_257, v_258, v_259r, v_260r). 
+Compute NFC= MEAN(v_95, v_96, v_97, v_98r, v_25, v_26r, v_27r, v_28r, v_253r, v_254r, v_255r, v_256r, v_257, v_258, v_259r, v_260r). 
 des NFC.
 
-* Bildung einer NFC Skala ohne die Items, die in der NFC-K vorkommen*.
-Compute NFC_ohne= MEAN(v_96, v_97, v_98r, v_25, v_26r, v_27r, v_28r, v_254r, v_255r, v_256r, v_260r).
-
+* Bildung einer NFC Skala ohne die Items, die in der NFC_K_1 vorkommen*.
+Compute NFC_ohne= MEAN(v_96,  v_98r, v_25, v_26r, v_253r, v_254r, v_255r, v_256r, v_258, v_259r, v_260r).
+des NFC_ohne.
 
 
 * Voranalyse: T-Test zwischen weiblichen und männlichen Teilnehmenden in Bezug auf Geschlecht.
@@ -237,3 +226,50 @@ T-TEST GROUPS=Geschlecht(1 2)
 
 
 
+*** Kurzskala NFC_K_1 (aus klassischer Itemanalyse) ***.
+
+*Reliabilität NFC_K_1.
+RELIABILITY
+  /VARIABLES= v_95 v_97 v_27r v_28r v_257
+  /SCALE('ALL VARIABLES') ALL
+  /MODEL=ALPHA
+  /STATISTICS=DESCRIPTIVE CORR.
+
+*Bildung der Skala NFC_K_1.
+Compute NFC_K_1 = MEAN(v_95, v_97, v_27r, v_28r, v_257). 
+des NFC_K_1. 
+
+
+*** Kurzskala NFC_K_2 (aus full information approach) ***.
+
+*Reliabilität NFC_K_2.
+RELIABILITY
+  /VARIABLES=  v_97 v_25 v_27r v_28r v_253r
+  /SCALE('ALL VARIABLES') ALL
+  /MODEL=ALPHA
+  /STATISTICS=DESCRIPTIVE CORR.
+
+*Bildung der Skala NFC_K_2.
+Compute NFC_K_2 = MEAN(v_97, v_25, v_27r, v_28r, v_253r). 
+des NFC_K_2. 
+
+
+*** Kurzskala NFC_K_3 (aus full information approach) ***.
+
+*Reliabilität NFC_K_3.
+RELIABILITY
+  /VARIABLES=  v_97 v_27r v_28r v_255r v_257
+  /SCALE('ALL VARIABLES') ALL
+  /MODEL=ALPHA
+  /STATISTICS=DESCRIPTIVE CORR.
+
+*Bildung der Skala NFC_K_3.
+Compute NFC_K_3 = MEAN(v_97, v_27r, v_28r, v_255r, v_257). 
+des NFC_K_3. 
+
+
+
+
+******************************************************************************************************.
+**************************************** Demographie *************************************************.
+******************************************************************************************************.

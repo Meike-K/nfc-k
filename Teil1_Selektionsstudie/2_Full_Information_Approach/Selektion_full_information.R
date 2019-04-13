@@ -21,7 +21,8 @@ load("Zwischenergebnisse/Full_Information_Statistiken.RData")
 
 # Check ob zufriedenstellende Reliabilität bei wenigen Items
 plot(results$no.items, results$alpha,
-     xlab = "Anzahl Items der Skala", ylab = "Cronbachs alpha")
+     xlab = "Anzahl Items der Skala", ylab = "Cronbachs alpha",
+     main = "Übersicht erzielter Cronbachs alpha nach Skalenlänge")
 # Ergebnis: keine zufriedenstellende Reliabilität bei < 4 Items
 
 
@@ -81,7 +82,8 @@ fi_results <- fi_results[, c("id", "glb", "alpha",  "mean_cor", "corSOCDES",
                              "v_256r", "v_257", "v_258", "v_259r", "v_260r")]
 
 write.csv(round(fi_results, 2), file="Full_Information_beste_Skalen.csv", row.names = FALSE)
-nrow(fi_results)
+print(paste0("Anzahl resultierender Skalen zur interaktiven Auswahl: ", nrow(fi_results), 
+             ". Gespeichert in 'Full_Information_beste_Skalen.csv'"))
 
 ##### Überlappung von Items
 overlapping <- round(apply(fi_results[, c("v_95",  "v_96", "v_97", "v_98r", "v_25", "v_26r", "v_27r", 

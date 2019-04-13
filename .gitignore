@@ -1,6 +1,4 @@
-*.sav
 *.csv
-*.xls
 *.out
 *.txt
 !NFC_data.txt

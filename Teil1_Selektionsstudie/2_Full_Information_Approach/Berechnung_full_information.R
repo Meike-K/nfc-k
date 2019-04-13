@@ -35,12 +35,13 @@ if(!require("foreign")){
 
 # Datenaufbereitung
 ################################################################################
+print("##### 1. Datenaufbereitung #####")
+
 # SPSS-Datensatz: "0_Daten/Datensatz der Selektion.sav"
 # - N = 282
 # - Alle Variablen
 # - Alle berechneten Skalen
 # - Subjekt-ID: ID
-
 raw_data <- read.spss("../0_Daten/Datensatz der Selektion.sav", 
                       to.data.frame=TRUE, use.value.labels = FALSE)
 head(raw_data)
@@ -57,13 +58,13 @@ selected_variables <- c(
   "v_95", "v_96", "v_97", "v_98r", "v_25", "v_26r", "v_27r", "v_28r",
   "v_253r", "v_254r", "v_255r", "v_256r", "v_257", "v_258", "v_259r", "v_260r",
   "TIE", "Deliberation", "Offenheit", "Lernziel_Gesamt", "SozErwuenscht",
-  "Bildungkategorie", "Geschlecht")
+  "Bildung", "Geschlecht")
 
 data <- raw_data[, selected_variables]
 data[is.na(data)] <- -77
 write.table(data, "Zwischenergebnisse/NFC_data.txt", col.names = FALSE, row.names = FALSE)
 
-# Date nwerden auch zur Messinvarianzanalyse abgelegt
+# Daten werden auch zur Messinvarianzanalyse abgelegt
 write.table(data, "../3_Sensitivitätsanalyse/Zwischenergebnisse/NFC_data.txt", col.names = FALSE, row.names = FALSE)
 
 
@@ -83,7 +84,6 @@ population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) < 3)
 write.table(population.matrix, "Zwischenergebnisse/population.matrix.txt", col.names = F, row.names = F)
 population.matrix		<- read.table("Zwischenergebnisse/population.matrix.txt")
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 7)),]
-
 
 # TODO: Further selection of runs (TEMPORARY)
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 5)),]	
@@ -115,6 +115,8 @@ population			<- nrow(population.matrix)
 
 # Fit Statistiken für alle NFC-Kurzformen berechnen 
 ################################################################################
+print("##### 2. Fit der Subskalen #####")
+
 compute_fi <- function(population.matrix, 
                        correlated_errors = FALSE,
                        file_in, 
@@ -134,12 +136,17 @@ compute_fi <- function(population.matrix,
   
   population <- nrow(population.matrix)
   statistics		<- matrix(NA, 1, 8)
+  steps <- round(quantile(c(1:population), seq(0, 1, 0.1)))[2:11]
   
+  print(paste0("Starting computation of ", population, " subscales"))
   for (K in 1:population) {
-    
+    if (K %in% steps){
+      print(paste0("Calculated ", 10*which(steps == K), "% of the subscales"))
+    }
     # I) Input-Syntax anpassen
     input             <- scan(file = paste(file_in, "_base", ".inp", sep=""), 
-                              what = "character", sep ="\n", quote = NULL)
+                              what = "character", sep ="\n", quote = NULL,
+                              quiet = TRUE)
     
     
     # Anpassung USEVARIABLES
@@ -174,7 +181,6 @@ compute_fi <- function(population.matrix,
     }
     
     input[is.na(input)] 	 <- paste(" ", collapse = " ")
-    print(file_in)
     write.table(input, file = paste(file_in, ".inp", sep = ""), 
                 quote = FALSE, col.names = FALSE, row.names = FALSE)
     
@@ -184,7 +190,8 @@ compute_fi <- function(population.matrix,
       if(is.null(mplus_path)){
         mplus_path <- "mplus.exe"
       }
-      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+             wait = TRUE, ignore.stdout = TRUE)
       
     } else {
       if(tolower(Sys.info()["sysname"]) == "linux"){
@@ -192,7 +199,8 @@ compute_fi <- function(population.matrix,
         if(is.null(mplus_path)){
           mplus_path <- "/opt/mplusdemo/mpdemo"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE)
         
         
       } else {
@@ -200,14 +208,15 @@ compute_fi <- function(population.matrix,
         if(is.null(mplus_path)){
           mplus_path <- "/Applications/Mplus/mplus"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE) 
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE) 
       }
     }
     
     if(extract_output){
       # III) Ergebnisse des MPlus-Outputs einsammeln 
       output 			<- scan(file = paste(file_in, ".out", sep=""),
-                        what = "character", sep ="\n", quote = NULL)
+                        what = "character", sep ="\n", quote = NULL, quiet = TRUE)
       
       position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
       statistics[1,1]		<- as.numeric(substr(output[position1[1]+1], 40, nchar(output[position1[1]+1])))
@@ -247,6 +256,7 @@ compute_fi(population.matrix, file_in = "Zwischenergebnisse/input_corr", correla
 
 # Reliabilitäts- und Validitätskennzahlen für alle Kurzskalen berechnen
 ################################################################################
+print("##### 3. Reliabilitätskennzahlen #####")
 
 # Datensatz für die Population aller Kurzskalen
 data.chromosomes	<- list()
@@ -259,15 +269,20 @@ for (pop in 1:population) {
 
 # Set-up für batchweise Berechnung
 batchsize <- min(nrow(population.matrix), 5000)
-n_batches <- (population %/% batchsize) + 1
+if (batchsize == nrow(population.matrix)){
+  n_batches <- 1
+} else {
+  n_batches <- (population %/% batchsize) + 1
+}
 batch 	<- matrix(NA, n_batches, 2)
 
 batch[1, ] <- c(1, batchsize)
-for (i in 2:(n_batches - 1)){
-  batch[i, ] <- c(batchsize*(i-1) + 1, batchsize*i)
+if (nrow(batch) > 1){
+  for (i in 2:(n_batches - 1)){
+    batch[i, ] <- c(batchsize*(i-1) + 1, batchsize*i)
+    batch[i+1, ]   <- c(batchsize*i + 1, population)
+  }
 }
-batch[i+1, ]   <- c(batchsize*i + 1, population)
-
 
 items		<- rowSums(population.matrix)
 negative	<- rowSums(population.matrix[, c(4, 6, 7, 8, 9, 10, 11, 12, 15, 16)])
@@ -309,7 +324,7 @@ for (pop in 1:population){
 for(pop in 1:population) {
 		a		<- data.chromosomes[pop]
 		glb		<- lapply(a, function(a) cov(a, use="complete.obs"))
-		glb		<- lapply(glb, function(glb) glb.algebraic(glb))
+		glb		<- suppressMessages(lapply(glb, function(glb) glb.algebraic(glb)))
 		glb		<- as.numeric(lapply(glb, `[[`, 1))
 		write.table(cbind(pop, glb), "Zwischenergebnisse/glb.txt", 
 		            col.names = FALSE, row.names = FALSE, append=TRUE)
@@ -322,11 +337,10 @@ results <- matrix(NA, population, 2)
 for(pop in 1:population) {
   data	<- data.chromosomes[pop]
   data  <- matrix(unlist(data[[1]]), nrow(data[[1]]))
-
-  temp1  <- omega(data, nfactors = 1, plot = FALSE)
+  # some functionalities of omega are not meaningful for 1 factor, suppressing respective warnings
+  temp1  <- suppressWarnings(suppressMessages(omega(data, nfactors = 1, plot = FALSE)))
   results[pop, 1] <- unlist(temp1[4])
 }
-
 write.table(results, "Zwischenergebnisse/omega.txt", col.names = FALSE, row.names = FALSE)
 
 
@@ -358,6 +372,8 @@ colnames(results) <- c("id","no.items","negativ.worded",
 
 # Aufbereitung der Ergebnisse
 ################################################################################
+print("##### 4. Ergebnisaufbereitung #####")
+
 results$mean_cor <- apply(results[, c("corTIE", "corDELIB", "corOPEN", "corLEARN")], 1, mean)
 
 
