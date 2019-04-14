@@ -85,8 +85,6 @@ write.table(population.matrix, "Zwischenergebnisse/population.matrix.txt", col.n
 population.matrix		<- read.table("Zwischenergebnisse/population.matrix.txt")
 population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 7)),]
 
-# TODO: Further selection of runs (TEMPORARY)
-population.matrix		<- population.matrix[-c(which(rowSums(population.matrix) > 5)),]	
 
 ###### Entfernen von Skalen die im korrelierten Modell negative Freiheitsgrade hätten
 n <- rowSums(population.matrix)
@@ -140,9 +138,12 @@ compute_fi <- function(population.matrix,
   
   print(paste0("Starting computation of ", population, " subscales"))
   for (K in 1:population) {
-    if (K %in% steps){
-      print(paste0("Calculated ", 10*which(steps == K), "% of the subscales"))
+    if(population > 100){
+      if (K %in% steps){
+        print(paste0("Calculated ", 10*which(steps == K), "% of the subscales"))
+      }
     }
+
     # I) Input-Syntax anpassen
     input             <- scan(file = paste(file_in, "_base", ".inp", sep=""), 
                               what = "character", sep ="\n", quote = NULL,

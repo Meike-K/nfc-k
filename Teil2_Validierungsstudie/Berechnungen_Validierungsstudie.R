@@ -49,10 +49,6 @@ if(!require("Hmisc")){
 data <- read.spss("0_Daten/Datensatz der Validierung.sav", 
                       to.data.frame=TRUE, use.value.labels = FALSE)
 
-data_labels <- read.spss("0_Daten/Datensatz der Validierung.sav", 
-                         to.data.frame=TRUE, use.value.labels = TRUE)
-
-
 
 # Deskriptive Ergebnisse zur Stichprobe via SPSS
 ################################################################################
@@ -76,20 +72,19 @@ nfck_k3 <- data[, c("nfc_k5226_1", "nfc_k5226_2_r", "nfc_k5226_3_r", "nfc_k5226_
 
 ## Vergleich der Reliabilitäten
 cocron(list(nfck_k1, nfck_k2, nfck_k3))
-cocron(list(nfck_k1, nfck_k2))
-cocron(list(nfck_k2, nfck_k3))
 # Kurzskalen unterscheiden sich nicht signifikant in ihrem Cronbachs alpha
 
 
 
-# Modellfit (Tabelle 2 und ESM 4)
+# Modellfit (Tabelle 2 und Anhang 4 in ESM 1)
 ################################################################################
-data[is.na(data)] <- -77
-write.table(nfck_k1[data$Variante_NFC_K == 1, ], file="1_Analysen/nfc_k_1.txt",
+write_data <- data
+write_data[is.na(write_data)] <- -77
+write.table(nfck_k1[write_data$Variante_NFC_K == 1, ], file="1_Analysen/nfc_k_1.txt",
             col.names = FALSE, row.names = FALSE)
-write.table(nfck_k2[data$Variante_NFC_K == 2, ], file="1_Analysen/nfc_k_2.txt",
+write.table(nfck_k2[write_data$Variante_NFC_K == 2, ], file="1_Analysen/nfc_k_2.txt",
             col.names = FALSE, row.names = FALSE)
-write.table(nfck_k3[data$Variante_NFC_K == 3, ], file="1_Analysen/nfc_k_3.txt",
+write.table(nfck_k3[write_data$Variante_NFC_K == 3, ], file="1_Analysen/nfc_k_3.txt",
             col.names = FALSE, row.names = FALSE)
 
 compute_fit <-  function(file_in, 
@@ -111,7 +106,8 @@ compute_fit <-  function(file_in,
       if(is.null(mplus_path)){
         mplus_path <- "mplus.exe"
       }
-      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+      system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+             wait = TRUE, ignore.stdout = TRUE)
       
     } else {
       if(tolower(Sys.info()["sysname"]) == "linux"){
@@ -119,7 +115,8 @@ compute_fit <-  function(file_in,
         if(is.null(mplus_path)){
           mplus_path <- "/opt/mplusdemo/mpdemo"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE)
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE)
         
         
       } else {
@@ -127,14 +124,15 @@ compute_fit <-  function(file_in,
         if(is.null(mplus_path)){
           mplus_path <- "/Applications/Mplus/mplus"
         }
-        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), wait = TRUE) 
+        system(paste(paste0(mplus_path, " "), file_in, ".inp ", file_in, out_name, ".out", sep=""), 
+               wait = TRUE, ignore.stdout = TRUE) 
       }
     }
     
     if(extract_output){
       # III) Ergebnisse des MPlus-Outputs einsammeln 
       output 			<- scan(file = paste(file_in, ".out", sep=""),
-                        what = "character", sep ="\n", quote = NULL)
+                        what = "character", sep ="\n", quote = NULL, quiet = TRUE)
       
       position1         <- grep("Chi-Square Test of Model Fit", output, ignore.case = TRUE)
       statistics[1,1]		<- as.numeric(substr(output[position1[1]+1], 40, nchar(output[position1[1]+1])))
@@ -159,15 +157,20 @@ compute_fit <-  function(file_in,
 
 
 compute_fit("1_Analysen/input_nfc_k_1")
+# MPlus Output gespeichert in: '1_Analysen/input_nfc_k_1.out'
+
 compute_fit("1_Analysen/input_nfc_k_2")
+# MPlus Output gespeichert in: '1_Analysen/input_nfc_k_2.out'
+
 compute_fit("1_Analysen/input_nfc_k_3")
+# MPlus Output gespeichert in: '1_Analysen/input_nfc_k_3.out'
 
 
 
 
 # Korrelationen aller NFC-Skalen mit verwandten Konstrukten (Tabelle 2)
 ################################################################################
-# siehe auch SPSS-Syntax: Berechnungen_Validierung_Ergänzungen.sps
+# siehe auch SPSS-Syntax: '0_Daten/Syntax Datenaufbereitung.sps'
 
 vars <- c("NFC", "Offenheit", "Gewissenhaftigkeit", "Deliberation", "TIE", "Lernziel_Gesamt", "Vermeid_gesamt", "SozErwuenscht")
 scales <- c("NFC_K_1", "NFC_K_2", "NFC_K_3", "NFC")
@@ -182,7 +185,7 @@ for(i in 1:nrow(corrs)){
   corrs[i, 3] <- cor(data[,c(rownames(corrs)[i], colnames(corrs)[3])], use="pairwise.complete.obs")[2,1]
   corrs[i, 4] <- cor(data[,c(rownames(corrs)[i], colnames(corrs)[4])], use="pairwise.complete.obs")[2,1]
 }
-round(corrs, 3)
+round(corrs, 2)
 
 
 

@@ -28,7 +28,7 @@ mplus_path <<- "/opt/mplusdemo/mpdemo"
 
 
 
-# Klassische Itemstatistiken via SPSS
+# Klassische Itemstatistiken via SPSS (Anhang 1 in ESM 1)
 ################################################################################
 # siehe "1_Klassische_Itemstatistiken/Berechnung_Itemsstatistiken.sps"
 
@@ -37,13 +37,14 @@ mplus_path <<- "/opt/mplusdemo/mpdemo"
 # Berechnung des Full Information Approachs
 ################################################################################
 # Aufbereitung der Daten und Berechnung aller Subskalen
+# Skript kann automatisch laufen via "source" oder händisch durchgegangen werden
 source("2_Full_Information_Approach/Berechnung_full_information.R")
 
 
 
 # Selektion der besten Skalen im Full Information Approach
 ################################################################################
-# Selektion der besten x Skalen nach definierten Kriterien
+# Selektion der besten 21 Skalen nach definierten Kriterien
 
 source("2_Full_Information_Approach/Selektion_full_information.R")
 ##### Zunächst Selektion anhand harter Kriterien:
@@ -74,16 +75,27 @@ source("2_Full_Information_Approach/Selektion_full_information.R")
 final_scales <<- c(423, 5226)
 
 
+
+##### Ablegen der finalen Skalen (Kennwerte für Manuskript)
+best_scales <- read.csv("2_Full_Information_Approach/Full_Information_beste_Skalen.csv")
+write.csv(best_scales[best_scales$id %in% final_scales, ], file="Full_Information_selektierte_Skalen.csv", 
+          row.names = FALSE)
+
+
+
 # Sensitivitätsanalyse: Messinvarianz im Full Information Approach
 ################################################################################
 # Basierend auf den 104 besten Skalen
 
 source("3_Sensitivitätsanalyse/Berechnung_Messinvarianz.R")
+# Sensitivitäts-Ergebnisse siehe 'Auswertung der Ergebnisse' am Ende des Skripts
+# Invarianzkennwerte der selektierten Skalen (Anhang 5 in ESM 1) in: 'Measurement_Invariance_selektierte_Skalen.csv 
 
 source("3_Sensitivitätsanalyse/Berechnung_MLR_Schaetzer.R")
+# Sensitivitäts-Ergebnisse siehe 'Vergleich zwischen ML und MLR' am Ende des Skripts
 
 
-# Mplus-Berechnungen der selektierten Skalen zur Inspektion der Mplus Outfiles
+# Mplus-Berechnungen der selektierten Skalen zur Inspektion der Mplus Outfiles (Anhang 3 in ESM 1)
 ################################################################################
 population.matrix		<- read.table("2_Full_Information_Approach/Zwischenergebnisse/population.matrix.txt")
 variable.names	<- c("v1","v2","v3","v4r","v5","v6r","v7r","v8r","v9r","v10r","v11r","v12r","v13","v14","v15r","v16r")

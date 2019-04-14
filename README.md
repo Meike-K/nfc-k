@@ -18,9 +18,11 @@ Die beiden R-Skripte
 - Teil1_Selektionsstudie/Berechnungen_Selektionsstudie.R
 - Teil2_Validierungsstudie/Berechnungen_Validierungsstudie.R
 
+stellen die Dokumentation der jeweiligen Analysen dar und verweisen auf alle notwendigen weiteren Skripte. Durch Ausführen dieser beiden Skripte können alle Analysen reproduziert werden. 
 
-stellen die Dokumentation der jeweiligen Analysen dar und verweisen auf alle notwendigen weiteren Skripte. Durch Ausführen dieser 
-beiden Skripte können alle Analysen reproduziert werden. 
+
+## Lokale Anpassungen:
+Beim Start der jeweiligen Skripte müssen die mit "#!#" markierten Pfade manuell angepasst werden. 
 
 
 

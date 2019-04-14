@@ -243,10 +243,6 @@ compute_mi <- function(population.matrix,
 }
 
 
-#TODO:
-longform <- population.matrix[1, ]
-
-
 ######Messinvarianz bezüglich Geschlecht
 # Selektierte Kurzskalen
 compute_mi(population.matrix, file_in = "Zwischenergebnisse/input_mi_gender", 
