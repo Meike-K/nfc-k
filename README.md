@@ -1,10 +1,9 @@
-# Code Supplement
+# [Code Supplement](https://github.com/Meike-K/nfc-k)
 ## Ein Vergleich traditioneller und computergestützter Methoden zur Erstellung einer deutschsprachigen Need for Cognition Kurzskala
-(Beißert, Köhler, Rempel und Kruyens)
+(H. Beißert, M. Köhler, M. Rempel und P. M. Kruyens)
 
 
-This code supplement contains all scripts for reproducing the analyses for selecting and validating a German 
-short scale for Need for Cognition. As the scale and the manuscript are in German, the documentation in the scripts is German as well.
+This online [code supplement](https://github.com/Meike-K/nfc-k) contains all scripts for reproducing the analyses for selecting and validating a German short scale for Need for Cognition as published in Diagnostica (2019). As the scale and the manuscript are in German, the documentation in the scripts is German as well.
 
 
 ## Struktur
